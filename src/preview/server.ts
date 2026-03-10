@@ -34,11 +34,24 @@ export interface PreviewServer {
   close: () => void;
 }
 
-/** Build a standalone HTML page for Figma capture (no chrome/iframe). */
-function buildCaptureHtml(compiledJs: string): string {
+const VIEWPORT_WIDTHS: Record<string, number> = {
+  desktop: 1280,
+  tablet: 768,
+  mobile: 375,
+};
+
+/**
+ * Build a standalone HTML page for Figma capture (no chrome/iframe).
+ * Optionally constrains to a viewport width for responsive captures.
+ */
+function buildCaptureHtml(compiledJs: string, viewportWidth?: number): string {
   const escapedJs = JSON.stringify(compiledJs)
     .replace(/</g, "\\u003c")
     .replace(/>/g, "\\u003e");
+
+  const containerStyle = viewportWidth
+    ? `max-width: ${viewportWidth}px; margin: 0 auto; overflow: hidden;`
+    : "";
 
   return [
     "<!DOCTYPE html>",
@@ -51,7 +64,9 @@ function buildCaptureHtml(compiledJs: string): string {
     '<script src="https://cdn.tailwindcss.com"></script>',
     "<style>body { margin: 0; }</style>",
     "</head><body>",
-    '<div id="root"></div>',
+    containerStyle
+      ? '<div id="root" style="' + containerStyle + '"></div>'
+      : '<div id="root"></div>',
     "<script>",
     "try {",
     "  var exports = {};",
@@ -90,7 +105,8 @@ export function startPreviewServer(
     const htmlContent = fs.readFileSync(htmlPath, "utf-8");
 
     const server = http.createServer((req, res) => {
-      const url = req.url?.split("?")[0] ?? "";
+      const parsedUrl = new URL(req.url ?? "/", `http://localhost:${port}`);
+      const url = parsedUrl.pathname;
 
       if (req.method === "GET" && (url === "/" || url === "")) {
         res.writeHead(200, {
@@ -114,7 +130,9 @@ export function startPreviewServer(
           "Content-Type": "text/html; charset=utf-8",
           "Cache-Control": "no-cache",
         });
-        res.end(buildCaptureHtml(last.compiledJs));
+        const viewport = parsedUrl.searchParams.get("viewport") ?? "desktop";
+        const viewportWidth = VIEWPORT_WIDTHS[viewport];
+        res.end(buildCaptureHtml(last.compiledJs, viewportWidth));
         return;
       }
 

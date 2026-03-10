@@ -12,6 +12,7 @@ import * as listComponents from "./tools/list-components.js";
 import * as checkCompliance from "./tools/check-compliance.js";
 import * as preview from "./tools/preview.js";
 import * as pushToFigma from "./tools/push-to-figma.js";
+import * as urlToFigma from "./tools/url-to-figma.js";
 
 /**
  * Start the SuperDuper UI Context MCP server.
@@ -42,7 +43,7 @@ export async function startServer(): Promise<void> {
     version: "0.1.0",
   });
 
-  // Register all 7 tools
+  // Register all 8 tools
   server.tool(
     getDesignSystem.name,
     getDesignSystem.description,
@@ -90,6 +91,13 @@ export async function startServer(): Promise<void> {
     pushToFigma.description,
     pushToFigma.inputSchema,
     pushToFigma.handler(kit)
+  );
+
+  server.tool(
+    urlToFigma.name,
+    urlToFigma.description,
+    urlToFigma.inputSchema,
+    urlToFigma.handler()
   );
 
   // Connect via stdio

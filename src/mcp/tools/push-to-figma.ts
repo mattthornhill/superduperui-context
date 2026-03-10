@@ -15,11 +15,16 @@ export const inputSchema = {
     .string()
     .optional()
     .describe("Optional frame name in Figma (defaults to 'SuperDuper Component')"),
+  viewports: z
+    .array(z.enum(["desktop", "tablet", "mobile"]))
+    .optional()
+    .describe("Viewports to capture (default: ['desktop']). Each gets a separate Figma frame."),
 };
 
 export function handler(kit: Kit | null) {
-  return async ({ code, name: frameName }: { code: string; name?: string }) => {
+  return async ({ code, name: frameName, viewports }: { code: string; name?: string; viewports?: string[] }) => {
     const resolvedName = frameName ?? "SuperDuper Component";
+    const resolvedViewports = viewports ?? ["desktop"];
     const captureUrl = `http://localhost:${PREVIEW_PORT}/capture`;
     const previewUrl = `http://localhost:${PREVIEW_PORT}`;
 
@@ -47,31 +52,40 @@ export function handler(kit: Kit | null) {
       }
     }
 
+    const viewportUrls = resolvedViewports.map((vp) => {
+      const vpParam = vp === "desktop" ? "" : `?viewport=${vp}`;
+      return `- **${vp}:** ${captureUrl}${vpParam}`;
+    });
+
     const response = [
       "# Push to Figma",
       "",
       "The component is rendered live at the preview canvas.",
       "",
-      "## Next Step",
+      "## Auto-Layout",
       "",
-      "Call Figma MCP's `generate_figma_design` tool to capture the standalone component page:",
+      "The Figma capture script automatically converts CSS flexbox/grid to Figma auto-layout frames.",
       "",
-      `1. **Use this URL for capture:** ${captureUrl}`,
-      "   This serves the component standalone (no preview chrome) for clean Figma capture.",
-      `2. The interactive preview with toolbar is at ${previewUrl}`,
-      `3. Use \`generate_figma_design\` with \`outputMode: "existingFile"\` to capture into your Figma file`,
-      `4. Name the frame: **${resolvedName}**`,
+      "## Capture URLs",
+      "",
+      "Each viewport renders the component at the appropriate width:",
+      ...viewportUrls,
+      "",
+      "## Next Steps",
+      "",
+      "For each viewport above, get a separate `captureId` from `generate_figma_design` and capture:",
+      "",
+      `1. Call \`generate_figma_design\` with \`outputMode: "existingFile"\` → get captureId`,
+      `2. Open the capture URL with hash: \`<url>#figmacapture=<captureId>&figmaendpoint=...&figmadelay=5000\``,
+      "3. Poll `generate_figma_design` with `captureId` until completed",
+      "",
+      `The interactive preview with toolbar is at ${previewUrl}`,
       "",
       "## Setup (if Figma MCP is not connected)",
       "",
-      "Add the Figma MCP server to your agent:",
-      "",
-      "**Claude Code:**",
       "```bash",
       "claude mcp add --transport http figma https://mcp.figma.com/mcp",
       "```",
-      "",
-      "**Cursor:** Use `/plugin-add figma`",
       "",
       "Authentication is via OAuth — no API key needed.",
       "",
@@ -82,8 +96,6 @@ export function handler(kit: Kit | null) {
       "```",
       tokenContext,
       "",
-      `**Capture URL:** ${captureUrl}`,
-      `**Preview URL:** ${previewUrl}`,
       `**Frame name:** ${resolvedName}`,
     ].join("\n");
 
