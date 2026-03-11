@@ -38,7 +38,7 @@ AI coding agents don't know your design system. They produce UI that looks gener
 
 ## MCP Tools
 
-Nine tools are registered with the MCP server automatically.
+Ten tools are registered with the MCP server automatically.
 
 | Tool | Description |
 |------|-------------|
@@ -51,6 +51,7 @@ Nine tools are registered with the MCP server automatically.
 | `push_to_figma` | Bridges to the Figma MCP server to create an editable Figma frame from component code. Requires Figma MCP to be configured separately. |
 | `design_in_figma` | Takes a natural language prompt (e.g. "A pricing card with 3 tiers") and returns design tokens, component specs, and step-by-step instructions for calling Figma MCP's `generate_figma_design`. Enables AI agents to design in Figma before writing code. Inputs: `prompt` (required), `fileKey` (optional), `viewports` (optional: desktop/tablet/mobile). |
 | `url_to_figma` | Captures a live website URL as editable Figma frames with auto-layout. Inputs: `url`, `viewports`, `outputMode` (newFile/existingFile/clipboard), `fileKey`. Requires both Figma MCP and Playwright MCP servers. |
+| `update_tokens` | Updates token values in `tokens.css`, `tokens.json`, and `DESIGN.md` simultaneously. Use when tweaking colours, spacing, or other tokens without re-extracting. Keeps the entire design system consistent. |
 
 ---
 
