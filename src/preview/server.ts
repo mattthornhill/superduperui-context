@@ -34,24 +34,15 @@ export interface PreviewServer {
   close: () => void;
 }
 
-const VIEWPORT_WIDTHS: Record<string, number> = {
-  desktop: 1280,
-  tablet: 768,
-  mobile: 375,
-};
-
 /**
  * Build a standalone HTML page for Figma capture (no chrome/iframe).
- * Optionally constrains to a viewport width for responsive captures.
+ * Viewport sizing is handled by Playwright's browser_resize — this page
+ * always renders full-width so Tailwind media queries respond correctly.
  */
-function buildCaptureHtml(compiledJs: string, viewportWidth?: number): string {
+function buildCaptureHtml(compiledJs: string): string {
   const escapedJs = JSON.stringify(compiledJs)
     .replace(/</g, "\\u003c")
     .replace(/>/g, "\\u003e");
-
-  const containerStyle = viewportWidth
-    ? `max-width: ${viewportWidth}px; margin: 0 auto; overflow: hidden;`
-    : "";
 
   return [
     "<!DOCTYPE html>",
@@ -64,9 +55,7 @@ function buildCaptureHtml(compiledJs: string, viewportWidth?: number): string {
     '<script src="https://cdn.tailwindcss.com"></script>',
     "<style>body { margin: 0; }</style>",
     "</head><body>",
-    containerStyle
-      ? '<div id="root" style="' + containerStyle + '"></div>'
-      : '<div id="root"></div>',
+    '<div id="root"></div>',
     "<script>",
     "try {",
     "  var exports = {};",
@@ -133,9 +122,7 @@ export function startPreviewServer(
           "Content-Type": "text/html; charset=utf-8",
           "Cache-Control": "no-cache",
         });
-        const viewport = parsedUrl.searchParams.get("viewport") ?? "desktop";
-        const viewportWidth = VIEWPORT_WIDTHS[viewport];
-        res.end(buildCaptureHtml(last.compiledJs, viewportWidth));
+        res.end(buildCaptureHtml(last.compiledJs));
         return;
       }
 
