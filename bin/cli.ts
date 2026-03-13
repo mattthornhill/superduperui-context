@@ -8,6 +8,7 @@ import { importCommand } from "../src/cli/import-zip.js";
 import { useCommand } from "../src/cli/use.js";
 import { listCommand } from "../src/cli/list.js";
 import { installCommand } from "../src/cli/install.js";
+import { doctorCommand } from "../src/cli/doctor.js";
 
 const require = createRequire(import.meta.url);
 const pkg = require("../../package.json") as { version: string };
@@ -64,6 +65,13 @@ program
   .option("--global", "Install globally (available in all projects, Claude Code only)")
   .action(async (options: { target?: string; global?: boolean }) => {
     await installCommand(options);
+  });
+
+program
+  .command("doctor")
+  .description("Check Node.js version, Claude CLI, and MCP dependencies")
+  .action(async () => {
+    await doctorCommand();
   });
 
 program.parse();

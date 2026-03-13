@@ -1,8 +1,13 @@
+import { createRequire } from "node:module";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { loadKit } from "../kit/loader.js";
 import type { Kit } from "../kit/types.js";
 import { startPreviewServer } from "../preview/server.js";
+
+const require = createRequire(import.meta.url);
+// Resolves from dist/src/mcp/server.js → ../../../package.json
+const pkg = require("../../../package.json") as { version: string };
 
 // Tool modules
 import * as getDesignSystem from "./tools/get-design-system.js";
@@ -43,7 +48,7 @@ export async function startServer(): Promise<void> {
 
   const server = new McpServer({
     name: "layout-context",
-    version: "0.1.0",
+    version: pkg.version,
   });
 
   // Register all 11 tools

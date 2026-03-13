@@ -38,7 +38,7 @@ AI coding agents don't know your design system. They produce UI that looks gener
 
 ## MCP Tools
 
-Ten tools are registered with the MCP server automatically.
+Eleven tools are registered with the MCP server automatically.
 
 | Tool | Description |
 |------|-------------|
@@ -65,6 +65,7 @@ Ten tools are registered with the MCP server automatically.
 | `install` | Auto-configure MCP settings for Claude Code, Cursor, and Windsurf in one step. |
 | `install --target <tool>` | Target a specific tool: `claude`, `cursor`, or `windsurf`. |
 | `install --global` | Install globally so the MCP server is available in all projects (Claude Code only). |
+| `doctor` | Check Node.js version, Claude CLI, and MCP dependencies (Figma, Playwright). |
 | `list` | List all available kits (free and pro). |
 | `use <kit>` | Switch the active kit in an existing `.layout/` directory. |
 | `import <path>` | Import a design system bundle exported from Layout (`.zip`). |
@@ -146,6 +147,20 @@ npx @layoutdesign/context install --global
 ```
 
 The MCP server always reads `.layout/` from the current working directory, so each project uses its own design system — even with a global install.
+
+### Updating
+
+Layout Context uses `npx -y` which fetches the latest version automatically when a new agent session starts. To force an update mid-session:
+
+```bash
+# Clear the npx cache to force a fresh download
+npx clear-npx-cache
+
+# Verify dependencies after updating
+npx @layoutdesign/context doctor
+```
+
+**Claude Code users:** The MCP server restarts automatically on new conversations. To force a restart mid-conversation, use `/mcp` and restart the `layout` server.
 
 ### Manual Setup
 
