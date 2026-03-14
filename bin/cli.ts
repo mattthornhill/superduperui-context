@@ -9,6 +9,8 @@ import { useCommand } from "../src/cli/use.js";
 import { listCommand } from "../src/cli/list.js";
 import { installCommand } from "../src/cli/install.js";
 import { doctorCommand } from "../src/cli/doctor.js";
+import { loginCommand, logoutCommand, whoamiCommand } from "../src/cli/login.js";
+import { pullCommand } from "../src/cli/pull.js";
 
 const require = createRequire(import.meta.url);
 const pkg = require("../../package.json") as { version: string };
@@ -72,6 +74,40 @@ program
   .description("Check Node.js version, Claude CLI, and MCP dependencies")
   .action(async () => {
     await doctorCommand();
+  });
+
+program
+  .command("login <api-key>")
+  .description("Authenticate with your Layout API key (from layout.design)")
+  .action(async (apiKey: string) => {
+    await loginCommand(apiKey);
+  });
+
+program
+  .command("logout")
+  .description("Remove stored API key")
+  .action(() => {
+    logoutCommand();
+  });
+
+program
+  .command("whoami")
+  .description("Show current authentication status")
+  .action(() => {
+    whoamiCommand();
+  });
+
+program
+  .command("pull [project-id]")
+  .description("Pull design context from Layout into .layout/")
+  .option("-o, --output <dir>", "Output directory", ".layout")
+  .option(
+    "-f, --formats <formats>",
+    "Comma-separated: design-md,claude-md,agents-md,cursor-rules,tokens-css,tokens-json,tailwind-config"
+  )
+  .option("-p, --project-id <id>", "Project ID (overrides argument)")
+  .action(async (projectIdArg: string | undefined, options: { output?: string; formats?: string; projectId?: string }) => {
+    await pullCommand(projectIdArg, options);
   });
 
 program.parse();
